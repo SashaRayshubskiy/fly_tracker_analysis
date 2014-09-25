@@ -3,7 +3,8 @@
 % Load trial data
 clear all;
 close all;
-basepath = '/home/sasha/fly_trackball_data/fly16/';
+% basepath = '/home/sasha/fly_trackball_data/fly16/';
+basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly20/';
 cd(basepath);
 
 search_dirs = '*raw_trial_*';
@@ -41,13 +42,18 @@ for i=1:size(files,1)
    disp(['Trial type idx: ' num2str(trial_type_idx)]);
    disp(['Trial type: ' trial_type]);
    
-   cur_cnt = trial_type_cnt(trial_type_idx);
+   cur_idx = trial_type_cnt(trial_type_idx);
    
-   trial_data{trial_type_idx,cur_cnt} = { trial_id, load([basepath filename]) };
+   trial_data{trial_type_idx,cur_idx} = { trial_id, load([basepath filename]) };
   
-   trial_type_cnt(trial_type_idx) = cur_cnt + 1;
+   trial_type_cnt(trial_type_idx) = cur_idx + 1;
+   
+   % disp(['Trial type cnt: ' num2str(trial_type_cnt(trial_type_idx))])
 end
 
+% subtract 1 from the indecies to get the count, because we started with
+% base 1
+trial_type_cnt = trial_type_cnt - 1;
 %% Plot per trial type runs
 
 trial_types = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
@@ -89,8 +95,8 @@ for i = 1:size(trial_data,1)
             
             xlabel('x distance (au)');
             ylabel('y distance (au)');
-            xlim([-10000 10000]);
-            ylim([-10000 10000]);
+            xlim([-10000 25000]);
+            ylim([-1000 100000]);
             title(['Trial type: ' trial_types{i} ' Trial #: ' num2str(trial_type_cnt(i))]);
             axis xy;
         end
