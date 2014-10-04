@@ -1,3 +1,54 @@
+%%
+
+cfiles = dir([basepath '*raw_cummulative_xy*.mat']);
+
+f = figure;
+prev_x_start = 0;
+prev_y_start = 0;
+first_time = '';
+last_time = '';
+for i = 1:length(cfiles)
+
+    filename = cfiles(i).name;
+    disp(filename);
+    fs = strsplit(filename, '_');
+    
+    hour = fs{3}(1:2);
+    min  = fs{3}(3:4);
+    sec  = fs{3}(5:6);
+    date_time = [ fs{1} '-' fs{2} ' ' hour ':' min ':' sec ];
+    
+    if(i==1)
+        first_time = date_time;
+    end
+    
+    if(i==length(cfiles))
+        last_time = date_time;
+    end
+    
+    d = load([basepath filename]);
+    
+    t_all = d.t_all;
+    dx_all = d.dx_all;
+    dy_all = d.dy_all;
+    
+    [traj_x, traj_y] = calc_trial_trajectory(dx_all, dy_all, prev_x_start, prev_y_start);
+    prev_x_start = traj_x(end);
+    prev_y_start = traj_y(end);
+    hold on;
+    plot(traj_x, traj_y);
+end
+
+xlabel('Distance (au)', 'FontSize', 14);
+ylabel('Distance (au)', 'FontSize', 14);
+tt = title(['Cumulative run ( ' first_time ' to ' last_time ' )'], 'FontSize', 16);
+set(tt,'interpreter','none')
+
+figname = 'cumulative_run';
+saveas(f, [basepath figname '.png']);
+saveas(f, [basepath figname '.fig']);
+saveas(f, [basepath figname '.eps']);
+
 %% Plot cummulative
 
 [ traj_x, traj_y ] = calculate_traj(dx_all,dy_all);

@@ -215,7 +215,7 @@ stim_vels = {[],[],[],[]};
 
 delta_dir_rad = {[],[],[],[]};
 
-VEL_THRESHOLD = 4000;
+VEL_THRESHOLD = 3000;
 
 for trial_idx = 1:size(trial_type_cnt,1)
     
@@ -253,7 +253,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
             % stim_vel = sqrt(stim_vel_x.^2 + stim_vel_y.^2);
             stim_vel = stim_vel_y; 
             
-            delta_pre_vs_stim_rad = atan2(sin(pre_angle_rad-stim_angle_rad), cos(stim_angle_rad-pre_angle_rad))
+            delta_pre_vs_stim_rad = atan2(sin(pre_angle_rad-stim_angle_rad), cos(stim_angle_rad-pre_angle_rad));
 
             %if( (pre_vel_y > VEL_THRESHOLD) && (stim_vel_y > VEL_THRESHOLD))                
             if( stim_vel_y > VEL_THRESHOLD)
@@ -276,7 +276,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     sv = cell2mat(stim_vels(trial_idx,:));
     dd = cell2mat(delta_dir_rad(trial_idx,:));
     
-    if 1
+    if 0
         t = 0 : .01 : 2 * pi;
         P = polar(t, 5000 * ones(size(t)));
         set(P, 'Visible', 'off')
@@ -290,7 +290,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     %compass(x,y,'r');
     end
     
-    if 0
+    if 1
     % Convert directions to a unit vector and take the angle of the average
     % vector
     [x,y] = pol2cart(dd,ones(1,length(dd)));  

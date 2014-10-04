@@ -4,14 +4,14 @@
 clear all;
 close all;
 % basepath = '/home/sasha/fly_trackball_data/fly16/';
-basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly20/';
+basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly24/';
 cd(basepath);
 
 search_dirs = '*raw_trial_*';
 files = dir([search_dirs '.mat']);
 
 clear trial_data;
-trial_data = cell(4,1);
+%trial_data = cell(1,1);
 
 trial_type_cnt = ones(4,1);
 
@@ -24,7 +24,8 @@ for i=1:size(files,1)
     
     trial_type = [fs{4} '_' fs{5}];
     trial_id = [ fs{1} '_' fs{2} '_' fs{3} '_' trial_ord ];
-       
+    trial_date_time = [ fs{1} '_' fs{2} '_' fs{3} ];
+    
     trial_type_idx = -1;
     
     if( strcmp(trial_type, 'Both_Air') )
@@ -43,12 +44,20 @@ for i=1:size(files,1)
    disp(['Trial type: ' trial_type]);
    
    cur_idx = trial_type_cnt(trial_type_idx);
+
+   trial_data_ns(trial_type_idx, cur_idx,:) = { datenum(trial_date_time, 'yyyy_mmdd_HHMMSS'), str2num(trial_ord), load([basepath filename]) };
    
-   trial_data{trial_type_idx,cur_idx} = { trial_id, load([basepath filename]) };
+   %trial_data{trial_type_idx,cur_idx,:} = { trial_id, load([basepath filename]) };
   
    trial_type_cnt(trial_type_idx) = cur_idx + 1;
    
    % disp(['Trial type cnt: ' num2str(trial_type_cnt(trial_type_idx))])
+end
+
+for i=1:size(trial_data_ns,1)
+    ne_idx = find(~cellfun(@isempty,trial_data_ns(i,:,1)));
+    
+    trial_data{i,:,:} = sortrows(squeeze(trial_data_ns(i,ne_idx,:)),[1 2]);
 end
 
 % subtract 1 from the indecies to get the count, because we started with
@@ -62,7 +71,7 @@ STIM_PERIOD = 15;
 
 colormap jet;
 cmap = colormap;
-temp = linspace(1,size(cmap,1),size(trial_data,2));
+temp = linspace(1,size(cmap,1),max(trial_type_cnt));
 cs = cmap(floor(temp),:);
 close(gcf());
 
@@ -72,34 +81,40 @@ f = figure('Name', ['Number of trials: ' num2str(size(files,1))]);
 for i = 1:size(trial_data,1)
         
     subplot(2,2,i);
-    for j = 1:size(trial_data,2)
-       
-        if (size(trial_data{ i, j },2) ~= 0)
-            
-            dx = trial_data{ i, j }{2}.dx;
-            dy = trial_data{ i, j }{2}.dy;
-            t  = trial_data{ i, j }{2}.t;
-            
-            [traj_x, traj_y] = calc_trial_trajectory( dx, dy );
-            plot(traj_x, traj_y, 'color', cs(j,:));
-            hold on;            
-
-            % label the start of stim with a 'X'
-            t_plot = t - t(1);
-            
-            t_plot_stim = find( (t_plot >= STIM_ONSET) & (t_plot <= (STIM_ONSET+STIM_PERIOD)));
-             
-            if(size(t_plot_stim,1) > 0)
-                plot( traj_x(t_plot_stim), traj_y(t_plot_stim), 'x', 'color', cs(j,:));
-            end
-            
-            xlabel('x distance (au)');
-            ylabel('y distance (au)');
-            xlim([-10000 25000]);
-            ylim([-1000 100000]);
-            title(['Trial type: ' trial_types{i} ' Trial #: ' num2str(trial_type_cnt(i))]);
-            axis xy;
+    for j = 1:size(trial_data{i},1)
+        
+        % dx = trial_data{ i, j }{2}.dx;
+        % dy = trial_data{ i, j }{2}.dy;
+        % t  = trial_data{ i, j }{2}.t;
+        dx = trial_data{ i }{j,3}.dx;
+        dy = trial_data{ i }{j,3}.dy;
+        t = trial_data{ i }{j,3}.t;
+        
+        [traj_x, traj_y] = calc_trial_trajectory( dx, dy );
+        plot(traj_x, traj_y, 'color', cs(j,:));
+        hold on;
+        
+        % label the start of stim with a 'X'
+        t_plot = t - t(1);
+        
+        t_plot_stim = find( (t_plot >= STIM_ONSET) & (t_plot <= (STIM_ONSET+STIM_PERIOD)));
+        
+        if(size(t_plot_stim,1) > 0)
+            plot( traj_x(t_plot_stim), traj_y(t_plot_stim), 'x', 'color', cs(j,:));
         end
+        
+        xlabel('x distance (au)');
+        ylabel('y distance (au)');
+        %xlim([-10000 25000]); % fly 20
+        %ylim([-1000 100000]); % fly 20
+        %xlim([-5000 10000]); % fly 21
+        %ylim([-1000 30000]); % fly 21
+        %xlim([-6000 10000]); % fly 22
+        %ylim([-1000 60000]); % fly 22
+        xlim([-3500 15000]); % fly 24
+        ylim([-1000 70000]); % fly 24
+        title(['Trial type: ' trial_types{i} ' Trial #: ' num2str(trial_type_cnt(i))]);
+        axis xy;
     end
 end
 
