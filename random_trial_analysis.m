@@ -4,7 +4,8 @@
 clear all;
 close all;
 % basepath = '/home/sasha/fly_trackball_data/fly16/';
-basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly24/';
+% basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly24/';
+basepath = '/data_drive/sasha/trackball/fly26/';
 cd(basepath);
 
 search_dirs = '*raw_trial_*';
@@ -111,8 +112,11 @@ for i = 1:size(trial_data,1)
         %ylim([-1000 30000]); % fly 21
         %xlim([-6000 10000]); % fly 22
         %ylim([-1000 60000]); % fly 22
-        xlim([-3500 15000]); % fly 24
-        ylim([-1000 70000]); % fly 24
+        %xlim([-3500 15000]); % fly 24
+        %ylim([-1000 70000]); % fly 24
+        xlim([-10000 10000]); % fly 24
+        ylim([-1000 40000]); % fly 24
+
         title(['Trial type: ' trial_types{i} ' Trial #: ' num2str(trial_type_cnt(i))]);
         axis xy;
     end
