@@ -49,6 +49,10 @@ for trial_idx = 1:size(trial_type_cnt,1)
         dx = double(d.dx);
         dy = double(d.dy);
         
+        % if( length(t) <= 1 )
+        %     continue;
+        % end
+        
         t_diff = diff(t);
 
         v_x = dx(2:end) ./ t_diff;
@@ -79,7 +83,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
         t = d.t;
         dx = double(d.dx);
         dy = double(d.dy);
-        
+                
         t_diff = diff(t);
 
         v_x = dx(2:end) ./ t_diff;
