@@ -5,7 +5,7 @@ clear all;
 close all;
 % basepath = '/home/sasha/fly_trackball_data/fly16/';
 % basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly24/';
-basepath = '/data_drive/sasha/trackball/fly26/';
+basepath = '/data_drive/sasha/trackball/fly28/';
 cd(basepath);
 
 search_dirs = '*raw_trial_*';
@@ -45,8 +45,14 @@ for i=1:size(files,1)
    disp(['Trial type: ' trial_type]);
    
    cur_idx = trial_type_cnt(trial_type_idx);
-
-   trial_data_ns(trial_type_idx, cur_idx,:) = { datenum(trial_date_time, 'yyyy_mmdd_HHMMSS'), str2num(trial_ord), load([basepath filename]) };
+   
+   ddd = load([basepath filename]);
+   
+   if( length(ddd.t) <= 1 )
+       continue;
+   end
+   
+   trial_data_ns(trial_type_idx, cur_idx,:) = { datenum(trial_date_time, 'yyyy_mmdd_HHMMSS'), str2num(trial_ord), ddd };
    
    %trial_data{trial_type_idx,cur_idx,:} = { trial_id, load([basepath filename]) };
   
@@ -114,8 +120,11 @@ for i = 1:size(trial_data,1)
         %ylim([-1000 60000]); % fly 22
         %xlim([-3500 15000]); % fly 24
         %ylim([-1000 70000]); % fly 24
-        xlim([-10000 10000]); % fly 24
-        ylim([-1000 40000]); % fly 24
+        %xlim([-10000 10000]); % fly 24
+        %ylim([-1000 40000]); % fly 24
+
+        xlim([-3500 10000]); % fly 26
+        ylim([-1000 30000]); % fly 26
 
         title(['Trial type: ' trial_types{i} ' Trial #: ' num2str(trial_type_cnt(i))]);
         axis xy;
