@@ -26,11 +26,9 @@ for trial_idx = 1:size(trial_type_cnt,1)
     mean_turning_idx = zeros(trial_type_cnt(trial_idx),1);
     mean_speedup_idx = zeros(trial_type_cnt(trial_idx),1);
     
-    % cur_pre_stim_size = zeros(trial_type_cnt(trial_idx),1);
-    % cur_stim_size = zeros(trial_type_cnt(trial_idx),1);
     cnt = 1;
-    
-    %trial_cnt = 10;
+    chosen_trials{trial_idx} = [];
+        
     trial_cnt = trial_type_cnt(trial_idx);
     figure(f1);
     subplot(2,2,trial_idx);
@@ -80,6 +78,12 @@ for trial_idx = 1:size(trial_type_cnt,1)
             plot(traj_x, traj_y, 'color', cs(j,:));
             plot( traj_x(size(pre_stim_t,2):end), traj_y(size(pre_stim_t,2):end), 'x', 'color', cs(j,:) );
             axis xy;
+        end
+              
+        if(( trial_idx == 3 ) & (mean_turning_idx(cnt) < 0 ))
+            chosen_trials{trial_idx} = [ chosen_trials{trial_idx} j];
+        elseif(mean_turning_idx(cnt) > 0 )
+            chosen_trials{trial_idx} = [ chosen_trials{trial_idx} j];
         end
         
         cnt = cnt + 1;
@@ -149,18 +153,13 @@ for trial_idx = 1:size(trial_type_cnt,1)
     for i = 1:size(time_grid,2)
         time_grid_data{trial_idx,i} = [];
     end
-
-    if ( trial_idx == 3 )
-        turning_idx = find( avg_turning_idx{trial_idx} < 0);
-    else
-        turning_idx = find( avg_turning_idx{trial_idx} > 0);
-    end
     
-    for j=1:size(turning_idx,1);
+    cur_chosen_trials = chosen_trials{trial_idx};
+    for j=1:size(cur_chosen_trials,1);
         
         % WARNING: This only works if there are no skipped trials when
         % avg_turning_idx is generated
-        jj = turning_idx(j); 
+        jj = cur_chosen_trials(j); 
         %d =  trial_data{ trial_idx, j }{2};
         d = trial_data{ trial_idx }{jj,3};
         
@@ -243,15 +242,45 @@ for trial_idx = 1:size(trial_type_cnt,1)
     
     figure(f);
     subplot(2,2,trial_idx);
+        
+    cur_chosen_trials = chosen_trials{trial_idx};
+    for j=1:size(cur_chosen_trials,1);
+        
+        % WARNING: This only works if there are no skipped trials when
+        % avg_turning_idx is generated
+        jj = cur_chosen_trials(j); 
+        %d =  trial_data{ trial_idx, j }{2};
+        d = trial_data{ trial_idx }{jj,3};
+        
+        t = d.t;
+        dx = double(d.dx);
+        dy = double(d.dy);
+                
+        t_z = t-t(1);
+        
+        pre_stim_t = find(t_z < PRE_STIM);
+        stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+STIM)));
+        
+        if( size(pre_stim_t,2) <= 1 || (size(stim_t,2) <= 1 ))
+            continue;
+        end        
+                 
+        t_diff = diff(t_z);
+        stim_vel_x = dx(2:end) ./ t_diff;
+        stim_vel_y = dy(2:end) ./ t_diff;
+        hold on;
+        plot( t_z(2:end), stim_vel_x, 'color', rgb('Bisque') );
+    end    
+    
     hold on;
     VEL_TYPE = 'Lat';
     %plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
     %plot(time_grid, sem_tc_lat, 'color', rgb('Bisque'));
     % subplot(1,2,2);
-    fh = fill([time_grid fliplr(time_grid)], ...
-         [(avg_tc_lat+sem_tc_lat)' fliplr((avg_tc_lat-sem_tc_lat)')], ...
-         rgb('Bisque'));
-    set(fh, 'EdgeColor', 'None');
+    %fh = fill([time_grid fliplr(time_grid)], ...
+    %     [(avg_tc_lat+sem_tc_lat)' fliplr((avg_tc_lat-sem_tc_lat)')], ...
+    %     rgb('Bisque'));
+    %set(fh, 'EdgeColor', 'None');
      
     plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
     
@@ -259,7 +288,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     xlabel('Time (s)', 'FontSize', 14);
     ylabel('Velocity (au/s)', 'FontSize', 14);
     xlim([0 25]);
-    ylim([-2000 2000]);
+    %ylim([-2000 2000]);
 
     figure(f1);
     subplot(2,2,trial_idx);
