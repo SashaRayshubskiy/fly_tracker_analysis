@@ -1,0 +1,458 @@
+%% Plot per trial type runs
+
+trial_types = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
+
+colormap jet;
+cmap = colormap;
+temp = linspace(1,size(cmap,1),max(trial_type_cnt));
+cs = cmap(floor(temp),:);
+close(gcf());
+
+%figure('Name', ['Trial type: ' trial_types{i}]);    
+f = figure('Name', ['Number of trials: ' num2str(size(files,1))]);    
+f1 = figure();
+
+for i = 1:size(trial_data,1)
+        
+    for j = 1:size(trial_data{i},1)
+        
+        % dx = trial_data{ i, j }{2}.dx;
+        % dy = trial_data{ i, j }{2}.dy;
+        % t  = trial_data{ i, j }{2}.t;
+        dx = trial_data{ i }{j,3}.dx;
+        dy = trial_data{ i }{j,3}.dy;
+        t = trial_data{ i }{j,3}.t;
+                               
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Rotate the trial run by the direction of the pre_stim
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        t_z = t-t(1);        
+        pre_stim_t = find(t_z < PRE_STIM);
+        stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+STIM)));
+        dir_pre_x = sum(dx(pre_stim_t));
+        dir_pre_y = sum(dy(pre_stim_t));
+        pre_angle_rad = atan2( dir_pre_y, dir_pre_x );
+        
+        rot_rad = pre_angle_rad - pi/2.0;
+        R = [cos(rot_rad) -sin(rot_rad); sin(rot_rad) cos(rot_rad)];
+
+        v = double([dx; dy]');
+        vR = v * R;
+        dx_rot = vR(:,1);
+        dy_rot = vR(:,2);
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        
+
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        figure(f1)
+        subplot(2,2,i);
+
+        hold on;
+        [traj_x_rot, traj_y_rot] = calc_trial_trajectory( dx_rot', dy_rot' );
+        plot(traj_x_rot, traj_y_rot, 'color', cs(j,:));
+        
+        % label the start of stim with a 'X'       
+        if(size(stim_t,1) > 0)
+            plot( traj_x_rot(stim_t), traj_y_rot(stim_t), 'x', 'color', cs(j,:));
+        end
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        
+        
+        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        figure(f);
+        subplot(2,2,i);
+        [traj_x, traj_y] = calc_trial_trajectory( dx, dy );
+        plot(traj_x, traj_y, 'color', cs(j,:));
+        hold on;
+        
+        % label the start of stim with a 'X'       
+        if(size(stim_t,1) > 0)
+            plot( traj_x(stim_t), traj_y(stim_t), 'x', 'color', cs(j,:));
+        end
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+        
+        xlabel('x distance (au)');
+        ylabel('y distance (au)');
+        %xlim([-10000 25000]); % fly 20
+        %ylim([-1000 100000]); % fly 20
+        %xlim([-5000 10000]); % fly 21
+        %ylim([-1000 30000]); % fly 21
+        %xlim([-6000 10000]); % fly 22
+        %ylim([-1000 60000]); % fly 22
+        %xlim([-3500 15000]); % fly 24
+        %ylim([-1000 70000]); % fly 24
+        %xlim([-10000 10000]); % fly 24
+        %ylim([-1000 40000]); % fly 24
+
+        %xlim([-6000 10000]); % fly 26
+        %ylim([-1000 90000]); % fly 26
+
+        xlim([-10000 10000]); % fly 26
+        ylim([-1000 90000]); % fly 26
+
+        title(['Trial type: ' trial_types{i} ' Trial #: ' num2str(trial_type_cnt(i))]);
+        axis xy;
+    end
+end
+
+search_dirs_for_output = strrep(search_dirs,'*','_wild_');
+
+saveas(f, [basepath search_dirs_for_output '_stim_type_all_runs_pre_stim_corrected.png']);
+saveas(f, [basepath search_dirs_for_output '_stim_type_all_runs_pre_stim_corrected.fig']);
+saveas(f, [basepath search_dirs_for_output '_stim_type_all_runs_pre_stim_corrected.eps']);
+
+%% Calculate turning index
+
+trial_type_labels = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
+
+f = figure;
+colormap jet;
+cmap = colormap;
+temp = linspace(1,size(cmap,1), max(trial_type_cnt));
+cs = cmap(floor(temp),:);
+close(f)
+
+f = figure;
+
+pre_stim_sizes = [];
+stim_sizes = [];
+
+PLOT_X_OFFSET_DELTA = 5000;
+
+CHOOSE_PERCENT_CUTOFF = 1.0;
+first_time = 1;
+
+for trial_idx = 1:size(trial_type_cnt,1)
+       
+    mean_turning_idx = zeros(trial_type_cnt(trial_idx),1);
+    mean_speedup_idx = zeros(trial_type_cnt(trial_idx),1);
+    
+    cnt = 1;
+    chosen_trials{trial_idx} = [];
+        
+    trial_cnt = trial_type_cnt(trial_idx);
+    
+    subplot(2,2,trial_idx);
+    
+    cur_x_plot_offset = 0;
+    
+    for j=1:trial_cnt
+
+        d = trial_data{ trial_idx }{j,3};
+
+        t = d.t;
+        dx = double(d.dx);
+        dy = double(d.dy);
+                        
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        % Rotate the trial run by the direction of the pre_stim
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        t_z = t-t(1);        
+        pre_stim_t = find(t_z < PRE_STIM);
+        stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+STIM)));
+        dir_pre_x = sum(dx(pre_stim_t));
+        dir_pre_y = sum(dy(pre_stim_t));
+        pre_angle_rad = atan2( dir_pre_y, dir_pre_x );
+        
+        rot_rad = pre_angle_rad - pi/2.0;
+        R = [cos(rot_rad) -sin(rot_rad); sin(rot_rad) cos(rot_rad)];
+
+        v = double([dx; dy]');
+        vR = v * R;
+        dx = vR(:,1)';
+        dy = vR(:,2)';
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
+        
+        if( size(pre_stim_t,2) <= 1 || (size(stim_t,2) <= 1 ))
+            continue;
+        end
+        
+        pre_vel_x = dx(pre_stim_t(2:end)) ./ diff(t_z(pre_stim_t));
+        pre_vel_y = dy(pre_stim_t(2:end)) ./ diff(t_z(pre_stim_t));
+        % pre_vel = sqrt(pre_vel_x.^2 + pre_vel_y.^2);        
+        
+        stim_vel_x = dx(stim_t(2:end)) ./ diff(t_z(stim_t));
+        stim_vel_y = dy(stim_t(2:end)) ./ diff(t_z(stim_t));
+        % stim_vel = sqrt(stim_vel_x.^2 + stim_vel_y.^2);      
+        
+        mean_turning_idx(cnt) = (mean(stim_vel_x) - mean(pre_vel_x)) / abs(mean(pre_vel_x));
+        
+        mean_speedup_idx(cnt) = mean(stim_vel_y) - mean(pre_vel_y);
+
+        choosen = 0;
+        if( (trial_idx == 3) & (mean_turning_idx(cnt) < -1.0*CHOOSE_PERCENT_CUTOFF) )
+            choosen = 1;
+        elseif ( (trial_idx ~= 3) & (mean_turning_idx(cnt) > CHOOSE_PERCENT_CUTOFF) )
+            choosen = 1;
+        end
+        
+        if(( trial_idx == 3 ) || (trial_idx == 4))
+            if(choosen == 1)
+                clr = rgb('Brown');
+                chosen_trials{trial_idx} = [ chosen_trials{trial_idx} j];
+                
+                if(trial_idx == 3)
+                    cur_x_plot_offset = 0;
+                else
+                    cur_x_plot_offset = 0;
+                end
+            else
+                clr = rgb('SandyBrown');
+                
+                if(trial_idx == 3)
+                    cur_x_plot_offset = 0;
+                else
+                    cur_x_plot_offset = 0;
+                end
+            end
+        else
+            clr = cs(j,:);
+            cur_x_plot_offset = 0;
+            if(choosen == 1)
+                chosen_trials{trial_idx} = [ chosen_trials{trial_idx} j];
+            end
+        end               
+        
+        pre_and_stim_t = horzcat( pre_stim_t, stim_t );
+        [traj_x, traj_y] = calc_trial_trajectory( dx(pre_and_stim_t), dy(pre_and_stim_t) );
+        hold on;
+        ph = plot(traj_x  + cur_x_plot_offset, traj_y, 'color', clr);
+        plot( traj_x(size(pre_stim_t,2):end) + cur_x_plot_offset, traj_y(size(pre_stim_t,2):end), 'x', 'color', clr );
+        
+        if(choosen)
+            go_ph = ph;
+        else
+            no_go_ph = ph;
+        end
+        
+        %text(cur_x_plot_offset, mean(traj_y(size(pre_stim_t,2):end)), ['TurnIdx: ' num2str(mean_turning_idx(cnt))]);
+        %text(cur_x_plot_offset, mean(traj_y(size(pre_stim_t,2):end))+2000, ['PreVelX: ' num2str(mean(pre_vel_x))]);
+        %text(cur_x_plot_offset, mean(traj_y(size(pre_stim_t,2):end))+4000, ['StimVelX: ' num2str(mean(stim_vel_x))]);
+                
+        cnt = cnt + 1;
+    end
+    
+    avg_turning_idx{trial_idx} = mean_turning_idx(1:cnt-1);
+    avg_speedup_idx{trial_idx} = mean_speedup_idx(1:cnt-1);
+    
+    turn_percent = size( chosen_trials{trial_idx}, 2) ./ trial_cnt;        
+    speedup_percent = size(find(avg_speedup_idx{trial_idx} > 0),1) ./ size(avg_speedup_idx{trial_idx},1);
+           
+    title( [trial_type_labels{trial_idx} ': turn\_idx: ' num2str(turn_percent) ' (' num2str(size( chosen_trials{trial_idx}, 2)) '/' ... 
+        num2str(trial_cnt) ') sd\_idx: ' num2str(speedup_percent) ' (' ... 
+        num2str(size(find(avg_speedup_idx{trial_idx} > 0),1)) '/' num2str(size(avg_speedup_idx{trial_idx},1)) ')'], ... 
+        'FontSize', 14);
+    
+    xlim([ -20000 20000 ]);
+    ylim([ 0 70000 ]);
+     if(( trial_idx == 3 ) || (trial_idx == 4))    
+        lh = legend([go_ph; no_go_ph],{'Go', 'No Go'});
+        % set(lh,'location','northeastoutside');
+     end
+    xlabel('X distance (au)', 'FontSize', 14);
+    ylabel('Y distance (au)', 'FontSize', 14);    
+end
+
+figname = 'turning_index';
+saveas(f, [basepath figname '.png']);
+saveas(f, [basepath figname '.fig']);
+saveas(f, [basepath figname '.eps']);
+
+%% Process average velocity time course with error bars for lateral and forward 
+
+trial_type_labels = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
+
+avg_vel_f = zeros(4,max(trial_type_cnt));
+avg_vel_l = zeros(4,max(trial_type_cnt));
+
+colormap jet;
+cmap = colormap;
+temp = linspace(1,size(cmap,1),max(trial_type_cnt));
+cs = cmap(floor(temp),:);
+close(gcf());
+
+%f = figure;
+
+clear time_grid;
+TIME_GRID_SPACING = 50.0; % per second
+TIME_GRID_SIZE    = PRE_STIM + STIM + FLUSH+5;
+time_grid = [0 : 1.0/TIME_GRID_SPACING : TIME_GRID_SIZE ];
+
+time_grid_data = cell(4,size(time_grid,1));
+
+for trial_idx = 1:size(trial_type_cnt,1)
+       
+    for i = 1:size(time_grid,2)
+        time_grid_data{trial_idx,i} = [];
+    end
+    
+    cur_chosen_trials = chosen_trials{trial_idx};
+    for j=1:size(cur_chosen_trials,2)
+        
+        % WARNING: This only works if there are no skipped trials when
+        % avg_turning_idx is generated
+        jj = cur_chosen_trials(j); 
+        %d =  trial_data{ trial_idx, j }{2};
+        d = trial_data{ trial_idx }{jj,3};
+        
+        t = d.t;
+        dx = double(d.dx);
+        dy = double(d.dy);
+                
+        t_z = t-t(1);
+        
+        pre_stim_t = find(t_z < PRE_STIM);
+        stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+STIM)));
+        
+        if( size(pre_stim_t,2) <= 1 || (size(stim_t,2) <= 1 ))
+            continue;
+        end        
+                 
+        t_diff = diff(t_z);
+        stim_vel_x = dx(2:end) ./ t_diff;
+        stim_vel_y = dy(2:end) ./ t_diff;
+        
+        time_grid_idx = 1;
+        for t_i = 2:size(t,2)  
+            while( time_grid(time_grid_idx) < t_z(t_i) )
+                time_grid_idx = time_grid_idx  + 1;
+            end
+            
+            % t(t_i) is => time_grid(time_grid_idx) here.
+            %t_i
+            time_grid_data{trial_idx,time_grid_idx} = cat(1, time_grid_data{trial_idx,time_grid_idx}, [jj stim_vel_x(t_i-1) stim_vel_y(t_i-1)]);            
+        end
+    end
+    
+    if 0
+    subplot(2,2,trial_idx);
+    hold on;
+    plot(t_z, dx, 'color', cs(j,:));
+    title([trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim'], 'FontSize', 14);
+    xlabel('Time (s)', 'FontSize', 14);
+    ylabel('Velocity (au/s)', 'FontSize', 14);
+    end
+end
+
+if 0
+figname = 'all_vel_ts';
+saveas(f, [basepath figname '.png']);
+saveas(f, [basepath figname '.fig']);
+saveas(f, [basepath figname '.eps']);
+end
+
+%% Plot average velocity time course with error bars for lateral and forward 
+
+avg_tc_lat = zeros(size(time_grid,2),1);
+sem_tc_lat = zeros(size(time_grid,2),1);
+
+avg_tc_fwd = zeros(size(time_grid,2),1);
+sem_tc_fwd = zeros(size(time_grid,2),1);
+
+f = figure;
+f1 = figure;
+for trial_idx = 1:size(trial_type_cnt,1)       
+    for i = 1:size(time_grid,2)
+        
+        if(size(time_grid_data{trial_idx,i}) ~= 0 )
+            mmm = mean(time_grid_data{trial_idx,i},1);
+            avg_tc_lat( i ) = mmm( 2 );
+            avg_tc_fwd( i ) = mmm( 3 );
+            
+            sss = std(time_grid_data{trial_idx,i},1);
+            if(length(sss) == 1)
+                sem_tc_lat( i ) = 0.0;
+                sem_tc_fwd( i ) = 0.0;
+            else            
+                %sem_tc_lat( i ) = sss( 2 ) / sqrt(size(time_grid_data{trial_idx,i},1));
+                %sem_tc_fwd( i ) = sss( 3 ) / sqrt(size(time_grid_data{trial_idx,i},1));
+                sem_tc_lat( i ) = sss( 2 );
+                sem_tc_fwd( i ) = sss( 3 );
+            end
+        end
+    end
+    
+    figure(f);
+    subplot(2,2,trial_idx);
+        
+    cur_chosen_trials = chosen_trials{trial_idx};
+    for j=1:size(cur_chosen_trials,2);
+        
+        % WARNING: This only works if there are no skipped trials when
+        % avg_turning_idx is generated
+        jj = cur_chosen_trials(j); 
+        %d =  trial_data{ trial_idx, j }{2};
+        d = trial_data{ trial_idx }{jj,3};
+        
+        t = d.t;
+        dx = double(d.dx);
+        dy = double(d.dy);
+                
+        t_z = t-t(1);
+        
+        pre_stim_t = find(t_z < PRE_STIM);
+        stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+STIM)));
+        
+        if( size(pre_stim_t,2) <= 1 || (size(stim_t,2) <= 1 ))
+            continue;
+        end        
+                 
+        t_diff = diff(t_z);
+        stim_vel_x = dx(2:end) ./ t_diff;
+        stim_vel_y = dy(2:end) ./ t_diff;
+        hold on;
+        %plot( t_z(2:end), stim_vel_x, 'color', rgb('Bisque') );
+    end    
+    
+    hold on;
+    VEL_TYPE = 'Lat';
+    %plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
+    %plot(time_grid, sem_tc_lat, 'color', rgb('Bisque'));
+    % subplot(1,2,2);
+    fh = fill([time_grid fliplr(time_grid)], ...
+         [(avg_tc_lat+sem_tc_lat)' fliplr((avg_tc_lat-sem_tc_lat)')], ...
+         rgb('Bisque'));
+    set(fh, 'EdgeColor', 'None');
+     
+    plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
+    
+    title([trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim error: std'], 'FontSize', 14);
+    xlabel('Time (s)', 'FontSize', 14);
+    ylabel('Velocity (au/s)', 'FontSize', 14);
+    xlim([0 PRE_STIM+STIM+FLUSH]);
+    ylim([-3000 3000]);
+
+    figure(f1);
+    subplot(2,2,trial_idx);
+    hold on;
+    VEL_TYPE = 'Fwd';
+    %plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
+    %plot(time_grid, sem_tc_lat, 'color', rgb('Bisque'));
+    % subplot(1,2,2);
+    fh = fill([time_grid fliplr(time_grid)], ...
+         [(avg_tc_fwd+sem_tc_fwd)' fliplr((avg_tc_fwd-sem_tc_fwd)')], ...
+         rgb('Bisque'));
+    set(fh, 'EdgeColor', 'None');
+     
+    plot(time_grid, avg_tc_fwd, 'color', rgb('Brown'));
+    
+    title([trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim error: std'], 'FontSize', 14);
+    xlabel('Time (s)', 'FontSize', 14);
+    ylabel('Velocity (au/s)', 'FontSize', 14);
+    xlim([0 PRE_STIM+STIM+FLUSH]);
+    ylim([-2000 5000]);
+end
+
+figname = ['lat_vel_ts_per_type'];
+saveas(f, [basepath figname '.png']);
+saveas(f, [basepath figname '.fig']);
+saveas(f, [basepath figname '.eps']);
+
+figname = ['fwd_vel_ts_per_type'];
+saveas(f1, [basepath figname '.png']);
+saveas(f1, [basepath figname '.fig']);
+saveas(f1, [basepath figname '.eps']);

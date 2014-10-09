@@ -41,9 +41,6 @@ end
 %% 
 trial_type_labels = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
 
-STIM = 15.0;
-PRE_STIM = 5.0;
-
 figure;
 colormap jet;
 cmap = colormap;
@@ -81,9 +78,6 @@ end
 %% Generate polar plots
 
 trial_type_labels = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
-
-STIM = 15.0;
-PRE_STIM = 5.0;
 
 figure;
 colormap jet;
@@ -196,9 +190,6 @@ end
 %% Generate pre-stim vs. stim polar plot diffs
 
 trial_type_labels = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
-
-STIM = 15.0;
-PRE_STIM = 5.0;
 
 figure;
 colormap jet;

@@ -4,11 +4,15 @@
 clear all;
 close all;
 % basepath = '/home/sasha/fly_trackball_data/fly16/';
-basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly28/';
-%basepath = '/data_drive/sasha/trackball/fly28/';
+% basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly28/';
+basepath = '/data_drive/sasha/trackball/fly34/';
 cd(basepath);
 
-search_dirs = '*raw_trial_*';
+PRE_STIM = 5;
+STIM = 8;
+FLUSH = 5;
+
+search_dirs = '2014_1009_121807*raw_trial_*';
 files = dir([search_dirs '.mat']);
 
 clear trial_data;
@@ -73,8 +77,6 @@ trial_type_cnt = trial_type_cnt - 1;
 %% Plot per trial type runs
 
 trial_types = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
-STIM_ONSET = 5;
-STIM_PERIOD = 15;
 
 colormap jet;
 cmap = colormap;
@@ -123,8 +125,11 @@ for i = 1:size(trial_data,1)
         %xlim([-10000 10000]); % fly 24
         %ylim([-1000 40000]); % fly 24
 
-        xlim([-3500 10000]); % fly 26
-        ylim([-1000 30000]); % fly 26
+        %xlim([-6000 10000]); % fly 26
+        %ylim([-1000 90000]); % fly 26
+
+        xlim([-10000 10000]); % fly 26
+        ylim([-1000 90000]); % fly 26
 
         title(['Trial type: ' trial_types{i} ' Trial #: ' num2str(trial_type_cnt(i))]);
         axis xy;
@@ -140,8 +145,6 @@ saveas(f, [basepath search_dirs_for_output '_stim_type_all_runs.eps']);
 %% Plot avg distance traveled 
 
 trial_types = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
-STIM_ONSET = 5;
-STIM_PERIOD = 15;
 
 colormap jet;
 cmap = colormap;

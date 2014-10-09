@@ -21,6 +21,10 @@ stim_sizes = [];
 TIME_BEFORE_STIM_TO_EVALUATE_FOR_TURNING = 5.0; % seconds
 TIME_AFTER_STIM_TO_EVALUATE_FOR_TURNING = 15.0; % seconds
 
+PLOT_X_OFFSET_DELTA = 2000;
+
+CHOOSE_PERCENT_CUTOFF = 1.5;
+
 for trial_idx = 1:size(trial_type_cnt,1)
        
     mean_turning_idx = zeros(trial_type_cnt(trial_idx),1);
@@ -30,8 +34,14 @@ for trial_idx = 1:size(trial_type_cnt,1)
     chosen_trials{trial_idx} = [];
         
     trial_cnt = trial_type_cnt(trial_idx);
-    figure(f1);
-    subplot(2,2,trial_idx);
+    
+    if(trial_idx == 3 )
+        figure(f1);
+        subplot(2,2,trial_idx);
+    end
+    
+    cur_x_plot_offset = 0;
+    
     for j=1:trial_cnt
 
         d = trial_data{ trial_idx }{j,3};
@@ -59,27 +69,42 @@ for trial_idx = 1:size(trial_type_cnt,1)
         stim_vel_y = dy(stim_t(2:end)) ./ diff(t_z(stim_t));
         % stim_vel = sqrt(stim_vel_x.^2 + stim_vel_y.^2);      
         
-        mean_turning_idx(cnt) = mean(stim_vel_x) - mean(pre_vel_x);
+        mean_turning_idx(cnt) = (mean(stim_vel_x) - mean(pre_vel_x)) / mean(pre_vel_x);
+        
         mean_speedup_idx(cnt) = mean(stim_vel_y) - mean(pre_vel_y);
         
         %cur_pre_stim_size(cnt) = size( pre_stim_t,2 );
         %cur_stim_size(cnt) = size( stim_t,2 );
-        show_in_plot = 0;
-        if((mean_turning_idx(cnt) < 0) & (trial_idx == 3))
-            show_in_plot = 1;
-        elseif(mean_turning_idx(cnt) > 0)
-            show_in_plot = 1;
-        end
+        
+        if (trial_idx == 3)
+            
+            choosen = 0;
+            if(mean_turning_idx(cnt) < -1.0*CHOOSE_PERCENT_CUTOFF)
+                choosen = 1;
+            end
                 
-        if (show_in_plot == 1 )
+            figure(f1);
+            if(choosen == 1)
+                subplot(1,2,1);
+            else
+                subplot(1,2,2);
+            end
+            
             pre_and_stim_t = horzcat( pre_stim_t, stim_t );
             [traj_x, traj_y] = calc_trial_trajectory( dx(pre_and_stim_t), dy(pre_and_stim_t) );
             hold on;
-            plot(traj_x, traj_y, 'color', cs(j,:));
-            plot( traj_x(size(pre_stim_t,2):end), traj_y(size(pre_stim_t,2):end), 'x', 'color', cs(j,:) );
+            plot(traj_x  + cur_x_plot_offset, traj_y, 'color', cs(j,:));
+            plot( traj_x(size(pre_stim_t,2):end) + cur_x_plot_offset, traj_y(size(pre_stim_t,2):end), 'x', 'color', cs(j,:) );
+            cur_x_plot_offset = cur_x_plot_offset + PLOT_X_OFFSET_DELTA;
             axis xy;
+            
+            if(choosen == 1)
+                title('Left turn: GO')
+            else
+                title('Left turn: NO GO')
+            end
         end
-              
+        
         if(( trial_idx == 3 ) & (mean_turning_idx(cnt) < 0 ))
             chosen_trials{trial_idx} = [ chosen_trials{trial_idx} j];
         elseif(mean_turning_idx(cnt) > 0 )
@@ -97,9 +122,9 @@ for trial_idx = 1:size(trial_type_cnt,1)
     
     
     if( trial_idx == 3 )
-        turn_percent = size(find(avg_turning_idx{trial_idx} < 0),1) ./ size(avg_turning_idx{trial_idx},1);
+        turn_percent = size(find(avg_turning_idx{trial_idx} < -1.0*CHOOSE_PERCENT_CUTOFF),1) ./ size(avg_turning_idx{trial_idx},1);
     else
-        turn_percent = size(find(avg_turning_idx{trial_idx} > 0),1) ./ size(avg_turning_idx{trial_idx},1);
+        turn_percent = size(find(avg_turning_idx{trial_idx} > CHOOSE_PERCENT_CUTOFF),1) ./ size(avg_turning_idx{trial_idx},1);
     end
     
     
@@ -108,6 +133,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     figure(f)
     subplot(2,2,trial_idx);
     bar([avg_turning_idx{trial_idx} avg_speedup_idx{trial_idx}], 2.0, 'EdgeColor', 'none');  
+    %plot(avg_turning_idx{trial_idx});
         
     title( [trial_type_labels{trial_idx} ': turn\_idx: ' num2str(turn_percent) ' sd\_idx: ' num2str(speedup_percent) ], 'FontSize', 14);
     xlim([0 trial_cnt]);
@@ -155,7 +181,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     end
     
     cur_chosen_trials = chosen_trials{trial_idx};
-    for j=1:size(cur_chosen_trials,1);
+    for j=1:size(cur_chosen_trials,2)
         
         % WARNING: This only works if there are no skipped trials when
         % avg_turning_idx is generated
@@ -244,7 +270,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     subplot(2,2,trial_idx);
         
     cur_chosen_trials = chosen_trials{trial_idx};
-    for j=1:size(cur_chosen_trials,1);
+    for j=1:size(cur_chosen_trials,2);
         
         % WARNING: This only works if there are no skipped trials when
         % avg_turning_idx is generated

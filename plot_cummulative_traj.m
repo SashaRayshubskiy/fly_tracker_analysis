@@ -85,9 +85,6 @@ hist(v,100000)
 
 trial_type_labels = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
 
-STIM = 15.0;
-PRE_STIM = 5.0;
-
 figure;
 colormap jet;
 cmap = colormap;

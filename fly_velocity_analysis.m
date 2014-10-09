@@ -2,9 +2,6 @@
 
 trial_type_labels = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
 
-STIM = 15.0;
-PRE_STIM = 5.0;
-
 f = figure;
 colormap jet;
 cmap = colormap;
@@ -107,9 +104,6 @@ saveas(f, [basepath 'vel_hist_all_runs.eps']);
 %% 
 trial_type_labels = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
 
-STIM = 15.0;
-PRE_STIM = 5.0;
-
 f = figure;
 colormap jet;
 cmap = colormap;
@@ -167,6 +161,8 @@ std_vf_pre = zeros(4,1);
 std_vl_pre = zeros(4,1);
 std_v_pre = zeros(4,1);
 
+correct_with_prestim = 1;
+
 f = figure;
 for trial_idx = 1:size(trial_type_cnt,1)
        
@@ -179,15 +175,35 @@ for trial_idx = 1:size(trial_type_cnt,1)
         t = d.t;
         dx = double(d.dx);
         dy = double(d.dy);
-        
+
         t_z = t-t(1);
         
         pre_stim_t = find(t_z < PRE_STIM);
         stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+STIM)));
-        
+
         if( size(pre_stim_t,2) <= 1 || (size(stim_t,2) <= 1 ))
             continue;
-        end        
+        end
+        
+        
+        if (correct_with_prestim == 1)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Rotate the trial run by the direction of the pre_stim
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            dir_pre_x = sum(dx(pre_stim_t));
+            dir_pre_y = sum(dy(pre_stim_t));
+            pre_angle_rad = atan2( dir_pre_y, dir_pre_x );
+            
+            rot_rad = pre_angle_rad - pi/2.0;
+            R = [cos(rot_rad) -sin(rot_rad); sin(rot_rad) cos(rot_rad)];
+            
+            v = double([dx; dy]');
+            vR = v * R;
+            dx = vR(:,1)';
+            dy = vR(:,2)';
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        end
+        
         
         disp(['pre_stim_t: ' num2str(size(pre_stim_t,2))]);        
         
@@ -326,12 +342,10 @@ saveas(f, [basepath figname '.eps']);
 
 trial_type_labels = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
 
-STIM = 15.0;
-PRE_STIM = 5.0;
-
 avg_vel_f = zeros(4,max(trial_type_cnt));
 avg_vel_l = zeros(4,max(trial_type_cnt));
 
+correct_with_prestim = 1;
 f = figure;
 for trial_idx = 1:size(trial_type_cnt,1)
        
@@ -352,6 +366,24 @@ for trial_idx = 1:size(trial_type_cnt,1)
             continue;
         end        
                 
+        if (correct_with_prestim == 1)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Rotate the trial run by the direction of the pre_stim
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            dir_pre_x = sum(dx(pre_stim_t));
+            dir_pre_y = sum(dy(pre_stim_t));
+            pre_angle_rad = atan2( dir_pre_y, dir_pre_x );
+            
+            rot_rad = pre_angle_rad - pi/2.0;
+            R = [cos(rot_rad) -sin(rot_rad); sin(rot_rad) cos(rot_rad)];
+            
+            v = double([dx; dy]');
+            vR = v * R;
+            dx = vR(:,1)';
+            dy = vR(:,2)';
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        end
+        
         pre_vel_x = dx(pre_stim_t(2:end)) ./ diff(t_z(pre_stim_t));
         pre_vel_y = dy(pre_stim_t(2:end)) ./ diff(t_z(pre_stim_t));
         pre_vel = sqrt(pre_vel_x.^2 + pre_vel_y.^2);        
@@ -376,7 +408,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     xlabel('Trial #', 'FontSize', 14);
     ylabel('Velocity (au/s)', 'FontSize', 14);
     xlim([0 trial_type_cnt(trial_idx)]);
-    ylim([-1000 1500]);
+    ylim([-2500 5500]);
     legend('Lateral', 'Forward');
 end
 
@@ -388,9 +420,6 @@ saveas(f, [basepath figname '.eps']);
 %% Process average velocity time course with error bars for lateral and forward 
 
 trial_type_labels = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
-
-STIM = 15.0;
-PRE_STIM = 5.0;
 
 avg_vel_f = zeros(4,max(trial_type_cnt));
 avg_vel_l = zeros(4,max(trial_type_cnt));
@@ -409,6 +438,7 @@ TIME_GRID_SIZE    = 30;
 time_grid = [0 : 1.0/TIME_GRID_SPACING : TIME_GRID_SIZE ];
 
 time_grid_data = cell(4,size(time_grid,1));
+correct_with_prestim = 1;
 
 for trial_idx = 1:size(trial_type_cnt,1)
        
@@ -431,7 +461,25 @@ for trial_idx = 1:size(trial_type_cnt,1)
         
         if( size(pre_stim_t,2) <= 1 || (size(stim_t,2) <= 1 ))
             continue;
-        end        
+        end
+        
+        if (correct_with_prestim == 1)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Rotate the trial run by the direction of the pre_stim
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            dir_pre_x = sum(dx(pre_stim_t));
+            dir_pre_y = sum(dy(pre_stim_t));
+            pre_angle_rad = atan2( dir_pre_y, dir_pre_x );
+            
+            rot_rad = pre_angle_rad - pi/2.0;
+            R = [cos(rot_rad) -sin(rot_rad); sin(rot_rad) cos(rot_rad)];
+            
+            v = double([dx; dy]');
+            vR = v * R;
+            dx = vR(:,1)';
+            dy = vR(:,2)';
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        end
                  
         t_diff = diff(t_z);
         stim_vel_x = dx(2:end) ./ t_diff;
