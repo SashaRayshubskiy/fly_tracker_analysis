@@ -132,7 +132,8 @@ for trial_idx = 1:size(trial_type_cnt,1)
     mean_speedup_idx = zeros(trial_type_cnt(trial_idx),1);
     
     cnt = 1;
-    chosen_trials{trial_idx} = [];
+    correct_trials{trial_idx} = [];
+    incorrect_trials{trial_idx} = [];
         
     trial_cnt = trial_type_cnt(trial_idx);
     
@@ -193,7 +194,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
         if(( trial_idx == 3 ) || (trial_idx == 4))
             if(choosen == 1)
                 clr = rgb('Brown');
-                chosen_trials{trial_idx} = [ chosen_trials{trial_idx} j];
+                correct_trials{trial_idx} = [ correct_trials{trial_idx} j];
                 
                 if(trial_idx == 3)
                     cur_x_plot_offset = 0;
@@ -201,6 +202,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
                     cur_x_plot_offset = 0;
                 end
             else
+                incorrect_trials{trial_idx} = [ incorrect_trials{trial_idx} j];
                 clr = rgb('SandyBrown');
                 
                 if(trial_idx == 3)
@@ -213,7 +215,9 @@ for trial_idx = 1:size(trial_type_cnt,1)
             clr = cs(j,:);
             cur_x_plot_offset = 0;
             if(choosen == 1)
-                chosen_trials{trial_idx} = [ chosen_trials{trial_idx} j];
+                correct_trials{trial_idx} = [ correct_trials{trial_idx} j];
+            else
+                incorrect_trials{trial_idx} = [ incorrect_trials{trial_idx} j];
             end
         end               
         
@@ -239,18 +243,18 @@ for trial_idx = 1:size(trial_type_cnt,1)
     avg_turning_idx{trial_idx} = mean_turning_idx(1:cnt-1);
     avg_speedup_idx{trial_idx} = mean_speedup_idx(1:cnt-1);
     
-    turn_percent = size( chosen_trials{trial_idx}, 2) ./ trial_cnt;        
+    turn_percent = size( correct_trials{trial_idx}, 2) ./ trial_cnt;        
     speedup_percent = size(find(avg_speedup_idx{trial_idx} > 0),1) ./ size(avg_speedup_idx{trial_idx},1);
            
-    title( [trial_type_labels{trial_idx} ': turn\_idx: ' num2str(turn_percent) ' (' num2str(size( chosen_trials{trial_idx}, 2)) '/' ... 
+    title( [trial_type_labels{trial_idx} ': turn\_idx: ' num2str(turn_percent) ' (' num2str(size( correct_trials{trial_idx}, 2)) '/' ... 
         num2str(trial_cnt) ') sd\_idx: ' num2str(speedup_percent) ' (' ... 
         num2str(size(find(avg_speedup_idx{trial_idx} > 0),1)) '/' num2str(size(avg_speedup_idx{trial_idx},1)) ')'], ... 
         'FontSize', 14);
     
-    xlim([ -20000 20000 ]);
-    ylim([ 0 70000 ]);
+    xlim([ -4000 4000 ]);
+    ylim([ 0 12000 ]);
      if(( trial_idx == 3 ) || (trial_idx == 4))    
-        lh = legend([go_ph; no_go_ph],{'Go', 'No Go'});
+        lh = legend([go_ph; no_go_ph],{'Correct', 'Incorrect'});
         % set(lh,'location','northeastoutside');
      end
     xlabel('X distance (au)', 'FontSize', 14);
@@ -282,20 +286,20 @@ TIME_GRID_SPACING = 50.0; % per second
 TIME_GRID_SIZE    = PRE_STIM + STIM + FLUSH+5;
 time_grid = [0 : 1.0/TIME_GRID_SPACING : TIME_GRID_SIZE ];
 
-time_grid_data = cell(4,size(time_grid,1));
+correct_time_grid_data = cell(4,size(time_grid,1));
 
 for trial_idx = 1:size(trial_type_cnt,1)
        
     for i = 1:size(time_grid,2)
-        time_grid_data{trial_idx,i} = [];
+        correct_time_grid_data{trial_idx,i} = [];
     end
     
-    cur_chosen_trials = chosen_trials{trial_idx};
-    for j=1:size(cur_chosen_trials,2)
+    cur_correct_trials = correct_trials{trial_idx};
+    for j=1:size(cur_correct_trials,2)
         
         % WARNING: This only works if there are no skipped trials when
         % avg_turning_idx is generated
-        jj = cur_chosen_trials(j); 
+        jj = cur_correct_trials(j); 
         %d =  trial_data{ trial_idx, j }{2};
         d = trial_data{ trial_idx }{jj,3};
         
@@ -324,67 +328,25 @@ for trial_idx = 1:size(trial_type_cnt,1)
             
             % t(t_i) is => time_grid(time_grid_idx) here.
             %t_i
-            time_grid_data{trial_idx,time_grid_idx} = cat(1, time_grid_data{trial_idx,time_grid_idx}, [jj stim_vel_x(t_i-1) stim_vel_y(t_i-1)]);            
+            correct_time_grid_data{trial_idx,time_grid_idx} = cat(1, correct_time_grid_data{trial_idx,time_grid_idx}, [jj stim_vel_x(t_i-1) stim_vel_y(t_i-1)]);            
         end
     end
-    
-    if 0
-    subplot(2,2,trial_idx);
-    hold on;
-    plot(t_z, dx, 'color', cs(j,:));
-    title([trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim'], 'FontSize', 14);
-    xlabel('Time (s)', 'FontSize', 14);
-    ylabel('Velocity (au/s)', 'FontSize', 14);
-    end
 end
-
-if 0
-figname = 'all_vel_ts';
-saveas(f, [basepath figname '.png']);
-saveas(f, [basepath figname '.fig']);
-saveas(f, [basepath figname '.eps']);
-end
-
-%% Plot average velocity time course with error bars for lateral and forward 
-
-avg_tc_lat = zeros(size(time_grid,2),1);
-sem_tc_lat = zeros(size(time_grid,2),1);
-
-avg_tc_fwd = zeros(size(time_grid,2),1);
-sem_tc_fwd = zeros(size(time_grid,2),1);
-
-f = figure;
-f1 = figure;
-for trial_idx = 1:size(trial_type_cnt,1)       
+ 
+% Process the incorrect trials
+incorrect_time_grid_data = cell(4,size(time_grid,1));
+for trial_idx = 1:size(trial_type_cnt,1)
+       
     for i = 1:size(time_grid,2)
-        
-        if(size(time_grid_data{trial_idx,i}) ~= 0 )
-            mmm = mean(time_grid_data{trial_idx,i},1);
-            avg_tc_lat( i ) = mmm( 2 );
-            avg_tc_fwd( i ) = mmm( 3 );
-            
-            sss = std(time_grid_data{trial_idx,i},1);
-            if(length(sss) == 1)
-                sem_tc_lat( i ) = 0.0;
-                sem_tc_fwd( i ) = 0.0;
-            else            
-                %sem_tc_lat( i ) = sss( 2 ) / sqrt(size(time_grid_data{trial_idx,i},1));
-                %sem_tc_fwd( i ) = sss( 3 ) / sqrt(size(time_grid_data{trial_idx,i},1));
-                sem_tc_lat( i ) = sss( 2 );
-                sem_tc_fwd( i ) = sss( 3 );
-            end
-        end
+        incorrect_time_grid_data{trial_idx,i} = [];
     end
     
-    figure(f);
-    subplot(2,2,trial_idx);
-        
-    cur_chosen_trials = chosen_trials{trial_idx};
-    for j=1:size(cur_chosen_trials,2);
+    cur_incorrect_trials = incorrect_trials{trial_idx};
+    for j=1:size(cur_incorrect_trials,2)
         
         % WARNING: This only works if there are no skipped trials when
         % avg_turning_idx is generated
-        jj = cur_chosen_trials(j); 
+        jj = cur_incorrect_trials(j); 
         %d =  trial_data{ trial_idx, j }{2};
         d = trial_data{ trial_idx }{jj,3};
         
@@ -404,9 +366,85 @@ for trial_idx = 1:size(trial_type_cnt,1)
         t_diff = diff(t_z);
         stim_vel_x = dx(2:end) ./ t_diff;
         stim_vel_y = dy(2:end) ./ t_diff;
-        hold on;
-        %plot( t_z(2:end), stim_vel_x, 'color', rgb('Bisque') );
-    end    
+        
+        time_grid_idx = 1;
+        for t_i = 2:size(t,2)  
+            while( time_grid(time_grid_idx) < t_z(t_i) )
+                time_grid_idx = time_grid_idx  + 1;
+            end
+            
+            incorrect_time_grid_data{trial_idx,time_grid_idx} = cat(1, incorrect_time_grid_data{trial_idx,time_grid_idx}, [jj stim_vel_x(t_i-1) stim_vel_y(t_i-1)]);
+       end
+   end
+end
+
+%% Plot average velocity time course with error bars for lateral and forward 
+
+correct_avg_tc_lat = zeros(size(time_grid,2),1);
+correct_sem_tc_lat = zeros(size(time_grid,2),1);
+correct_avg_tc_fwd = zeros(size(time_grid,2),1);
+correct_sem_tc_fwd = zeros(size(time_grid,2),1);
+
+incorrect_avg_tc_lat = zeros(size(time_grid,2),1);
+incorrect_sem_tc_lat = zeros(size(time_grid,2),1);
+incorrect_avg_tc_fwd = zeros(size(time_grid,2),1);
+incorrect_sem_tc_fwd = zeros(size(time_grid,2),1);
+
+f = figure;
+f1 = figure;
+for trial_idx = 1:size(trial_type_cnt,1)       
+    
+    for i = 1:size(time_grid,2)        
+        if(size(correct_time_grid_data{trial_idx,i}) ~= 0 )
+            mmm = mean(correct_time_grid_data{trial_idx,i},1);
+            correct_avg_tc_lat( i ) = mmm( 2 );
+            correct_avg_tc_fwd( i ) = mmm( 3 );
+            
+            sss = std(correct_time_grid_data{trial_idx,i},1);
+            if(length(sss) == 1)
+                correct_sem_tc_lat( i ) = 0.0;
+                correct_sem_tc_fwd( i ) = 0.0;
+            else            
+                % correct_sem_tc_lat( i ) = sss( 2 ) / sqrt(size(correct_time_grid_data{trial_idx,i},1));
+                % correct_sem_tc_fwd( i ) = sss( 3 ) / sqrt(size(correct_time_grid_data{trial_idx,i},1));
+                correct_sem_tc_lat( i ) = sss( 2 );
+                correct_sem_tc_fwd( i ) = sss( 3 );
+            end
+        end
+    end
+    
+    for i = 1:size(time_grid,2)
+        if(size(incorrect_time_grid_data{trial_idx,i}) ~= 0 )
+            mmm = mean(incorrect_time_grid_data{trial_idx,i},1);
+            incorrect_avg_tc_lat( i ) = mmm( 2 );
+            incorrect_avg_tc_fwd( i ) = mmm( 3 );
+            
+            sss = std(incorrect_time_grid_data{trial_idx,i},1);
+            if(length(sss) == 1)
+                incorrect_sem_tc_lat( i ) = 0.0;
+                incorrect_sem_tc_fwd( i ) = 0.0;
+            else            
+                % incorrect_sem_tc_lat( i ) = sss( 2 ) / sqrt(size(incorrect_time_grid_data{trial_idx,i},1));
+                % incorrect_sem_tc_fwd( i ) = sss( 3 ) / sqrt(size(incorrect_time_grid_data{trial_idx,i},1));
+                incorrect_sem_tc_lat( i ) = sss( 2 );
+                incorrect_sem_tc_fwd( i ) = sss( 3 );
+            end
+        end
+    end
+    
+    subplot_idx = -1;
+    if (trial_idx == 1 )
+        subplot_idx = 1;
+    elseif (trial_idx == 2 )
+        subplot_idx = 2;
+    elseif (trial_idx == 3 )
+        subplot_idx = 5;
+    elseif (trial_idx == 4 )
+        subplot_idx = 6;
+    end
+    
+    figure(f);
+    subplot(4,2,subplot_idx);
     
     hold on;
     VEL_TYPE = 'Lat';
@@ -414,37 +452,78 @@ for trial_idx = 1:size(trial_type_cnt,1)
     %plot(time_grid, sem_tc_lat, 'color', rgb('Bisque'));
     % subplot(1,2,2);
     fh = fill([time_grid fliplr(time_grid)], ...
-         [(avg_tc_lat+sem_tc_lat)' fliplr((avg_tc_lat-sem_tc_lat)')], ...
+         [(correct_avg_tc_lat+correct_sem_tc_lat)' fliplr((correct_avg_tc_lat-correct_sem_tc_lat)')], ...
          rgb('Bisque'));
     set(fh, 'EdgeColor', 'None');
      
-    plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
+    plot(time_grid, correct_avg_tc_lat, 'color', rgb('Brown'));
     
-    title([trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim error: std'], 'FontSize', 14);
+    title(['Correct ' trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim error: std'], 'FontSize', 14);
     xlabel('Time (s)', 'FontSize', 14);
     ylabel('Velocity (au/s)', 'FontSize', 14);
     xlim([0 PRE_STIM+STIM+FLUSH]);
     ylim([-3000 3000]);
 
+    subplot(4,2,subplot_idx+2);
+    hold on;
+    VEL_TYPE = 'Lat';
+    %plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
+    %plot(time_grid, sem_tc_lat, 'color', rgb('Bisque'));
+    % subplot(1,2,2);
+    fh = fill([time_grid fliplr(time_grid)], ...
+         [(incorrect_avg_tc_lat + incorrect_sem_tc_lat)' fliplr((incorrect_avg_tc_lat-incorrect_sem_tc_lat)')], ...
+         rgb('Bisque'));
+    set(fh, 'EdgeColor', 'None');
+     
+    plot(time_grid, incorrect_avg_tc_lat, 'color', rgb('Brown'));
+    
+    title(['Incorrect ' trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim error: std'], 'FontSize', 14);
+    xlabel('Time (s)', 'FontSize', 14);
+    ylabel('Velocity (au/s)', 'FontSize', 14);
+    xlim([0 PRE_STIM+STIM+FLUSH]);
+    ylim([-3000 3000]);
+    
+    
+    
     figure(f1);
-    subplot(2,2,trial_idx);
+    subplot(4,2,subplot_idx);
     hold on;
     VEL_TYPE = 'Fwd';
     %plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
     %plot(time_grid, sem_tc_lat, 'color', rgb('Bisque'));
     % subplot(1,2,2);
     fh = fill([time_grid fliplr(time_grid)], ...
-         [(avg_tc_fwd+sem_tc_fwd)' fliplr((avg_tc_fwd-sem_tc_fwd)')], ...
+         [(correct_avg_tc_fwd+correct_sem_tc_fwd)' fliplr((correct_avg_tc_fwd-correct_sem_tc_fwd)')], ...
          rgb('Bisque'));
     set(fh, 'EdgeColor', 'None');
      
-    plot(time_grid, avg_tc_fwd, 'color', rgb('Brown'));
+    plot(time_grid, correct_avg_tc_fwd, 'color', rgb('Brown'));
     
-    title([trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim error: std'], 'FontSize', 14);
+    title(['Correct ' trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim error: std'], 'FontSize', 14);
     xlabel('Time (s)', 'FontSize', 14);
     ylabel('Velocity (au/s)', 'FontSize', 14);
     xlim([0 PRE_STIM+STIM+FLUSH]);
     ylim([-2000 5000]);
+
+    subplot(4,2,subplot_idx+2);
+    hold on;
+    VEL_TYPE = 'Fwd';
+    %plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
+    %plot(time_grid, sem_tc_lat, 'color', rgb('Bisque'));
+    % subplot(1,2,2);
+    fh = fill([time_grid fliplr(time_grid)], ...
+         [(incorrect_avg_tc_fwd+incorrect_sem_tc_fwd)' fliplr((incorrect_avg_tc_fwd-incorrect_sem_tc_fwd)')], ...
+         rgb('Bisque'));
+    set(fh, 'EdgeColor', 'None');
+     
+    plot(time_grid, incorrect_avg_tc_fwd, 'color', rgb('Brown'));
+    
+    title(['Incorrect ' trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim error: std'], 'FontSize', 14);
+    xlabel('Time (s)', 'FontSize', 14);
+    ylabel('Velocity (au/s)', 'FontSize', 14);
+    xlim([0 PRE_STIM+STIM+FLUSH]);
+    ylim([-2000 5000]);
+    
 end
 
 figname = ['lat_vel_ts_per_type'];
