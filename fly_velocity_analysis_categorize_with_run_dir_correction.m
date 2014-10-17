@@ -141,6 +141,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     
     cur_x_plot_offset = 0;
     
+    qualified_trials_cnt = 0;
     for j=1:trial_cnt
 
         d = trial_data{ trial_idx }{j,3};
@@ -175,6 +176,10 @@ for trial_idx = 1:size(trial_type_cnt,1)
         pre_vel_x = dx(pre_stim_t(2:end)) ./ diff(t_z(pre_stim_t));
         pre_vel_y = dy(pre_stim_t(2:end)) ./ diff(t_z(pre_stim_t));
         % pre_vel = sqrt(pre_vel_x.^2 + pre_vel_y.^2);        
+        
+        if( mean(pre_vel_y) < 1000 )
+            continue;
+        end
         
         stim_vel_x = dx(stim_t(2:end)) ./ diff(t_z(stim_t));
         stim_vel_y = dy(stim_t(2:end)) ./ diff(t_z(stim_t));
@@ -238,21 +243,22 @@ for trial_idx = 1:size(trial_type_cnt,1)
         %text(cur_x_plot_offset, mean(traj_y(size(pre_stim_t,2):end))+4000, ['StimVelX: ' num2str(mean(stim_vel_x))]);
                 
         cnt = cnt + 1;
+        qualified_trials_cnt = qualified_trials_cnt + 1;
     end
     
     avg_turning_idx{trial_idx} = mean_turning_idx(1:cnt-1);
     avg_speedup_idx{trial_idx} = mean_speedup_idx(1:cnt-1);
     
-    turn_percent = size( correct_trials{trial_idx}, 2) ./ trial_cnt;        
+    turn_percent = size(correct_trials{trial_idx}, 2) ./ qualified_trials_cnt;        
     speedup_percent = size(find(avg_speedup_idx{trial_idx} > 0),1) ./ size(avg_speedup_idx{trial_idx},1);
            
     title( [trial_type_labels{trial_idx} ': turn\_idx: ' num2str(turn_percent) ' (' num2str(size( correct_trials{trial_idx}, 2)) '/' ... 
-        num2str(trial_cnt) ') sd\_idx: ' num2str(speedup_percent) ' (' ... 
-        num2str(size(find(avg_speedup_idx{trial_idx} > 0),1)) '/' num2str(size(avg_speedup_idx{trial_idx},1)) ')'], ... 
+        num2str(qualified_trials_cnt) ' : ' num2str(trial_cnt) ') sd\_idx: ' num2str(speedup_percent) ' (' ... 
+        num2str(size(find(avg_speedup_idx{trial_idx} > 0),1)) '/' num2str(size(avg_speedup_idx{trial_idx},1)) ' : ' num2str(trial_cnt) ')'], ... 
         'FontSize', 14);
     
-    xlim([ -4000 4000 ]);
-    ylim([ 0 12000 ]);
+    xlim([ -15000 15000 ]);
+    ylim([ 0 50000 ]);
      if(( trial_idx == 3 ) || (trial_idx == 4))    
         lh = legend([go_ph; no_go_ph],{'Correct', 'Incorrect'});
         % set(lh,'location','northeastoutside');
@@ -462,7 +468,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     xlabel('Time (s)', 'FontSize', 14);
     ylabel('Velocity (au/s)', 'FontSize', 14);
     xlim([0 PRE_STIM+STIM+FLUSH]);
-    ylim([-3000 3000]);
+    ylim([-2000 2000]);
 
     subplot(4,2,subplot_idx+2);
     hold on;
@@ -481,7 +487,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     xlabel('Time (s)', 'FontSize', 14);
     ylabel('Velocity (au/s)', 'FontSize', 14);
     xlim([0 PRE_STIM+STIM+FLUSH]);
-    ylim([-3000 3000]);
+    ylim([-2000 2000]);
     
     
     

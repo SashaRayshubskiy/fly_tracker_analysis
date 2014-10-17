@@ -4,8 +4,8 @@
 clear all;
 close all;
 % basepath = '/home/sasha/fly_trackball_data/fly16/';
-% basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly28/';
-basepath = '/home/sasha/data/fly41/';
+basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly35/';
+%basepath = '/home/sasha/data/fly41/';
 cd(basepath);
 
 PRE_STIM = 5;
@@ -13,6 +13,7 @@ STIM = 5;
 FLUSH = 5;
 
 search_dirs = '*raw_trial_*';
+%search_dirs = '2014_1009_121807*raw_trial_*'; % fly 34
 files = dir([search_dirs '.mat']);
 
 clear trial_data;
