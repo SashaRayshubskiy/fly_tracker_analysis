@@ -4,13 +4,9 @@
 clear all;
 close all;
 % basepath = '/home/sasha/fly_trackball_data/fly16/';
-<<<<<<< Updated upstream
-basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly35/';
+basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly36/';
 %basepath = '/home/sasha/data/fly41/';
-=======
-basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly32/';
 %basepath = '/data_drive/sasha/trackball/fly34/';
->>>>>>> Stashed changes
 cd(basepath);
 
 

@@ -534,7 +534,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     figure(f2);
     subplot(2,2,trial_idx);
     
-    [ax1, h1, h2] = plotyy(time_grid, avg_tc_lat, time_grid, avg_tc_fwd);
+    [ax1, h1, h2] = plotyy(time_grid, correct_avg_tc_lat, time_grid, correct_avg_tc_fwd);
     title([trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim error: std'], 'FontSize', 14);
     xlabel('Time (s)', 'FontSize', 14);
     ylabel('Velocity (au/s)', 'FontSize', 14);

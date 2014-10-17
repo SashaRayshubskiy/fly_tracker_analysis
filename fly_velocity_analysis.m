@@ -308,7 +308,7 @@ title(['Avg lateral velocity']);
 lh = legend('Pre-stim', 'Stim');
 set(lh,'location','northeastoutside');
 yl = ylim;
-ylim([yl(1) 350]);
+ylim([yl(1) 750]);
 
 subplot(3,1,3);
 mean_v_bars(1,:) = mean_v_pre;
