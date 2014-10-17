@@ -176,15 +176,16 @@ for trial_idx = 1:size(trial_type_cnt,1)
         pre_vel_x = dx(pre_stim_t(2:end)) ./ diff(t_z(pre_stim_t));
         pre_vel_y = dy(pre_stim_t(2:end)) ./ diff(t_z(pre_stim_t));
         % pre_vel = sqrt(pre_vel_x.^2 + pre_vel_y.^2);        
-        
-        if( mean(pre_vel_y) < 1000 )
-            continue;
-        end
-        
+                
         stim_vel_x = dx(stim_t(2:end)) ./ diff(t_z(stim_t));
         stim_vel_y = dy(stim_t(2:end)) ./ diff(t_z(stim_t));
         % stim_vel = sqrt(stim_vel_x.^2 + stim_vel_y.^2);      
         
+        QUALIFICATION_SPEED_LIMIT = 100;
+        if( (mean(pre_vel_y) < QUALIFICATION_SPEED_LIMIT) | (mean(stim_vel_y) < QUALIFICATION_SPEED_LIMIT ))
+            continue;
+        end
+
         mean_turning_idx(cnt) = (mean(stim_vel_x) - mean(pre_vel_x)) / abs(mean(pre_vel_x));
         
         mean_speedup_idx(cnt) = mean(stim_vel_y) - mean(pre_vel_y);
@@ -451,7 +452,11 @@ for trial_idx = 1:size(trial_type_cnt,1)
     end
     
     figure(f);
-    subplot(4,2,subplot_idx);
+    %subplot(4,2,subplot_idx);
+    SPACING = 0.1;
+    PADDING = 0;
+    MARGIN = 0.05;
+    subaxis(4,2,subplot_idx, 'Spacing', SPACING, 'Padding', PADDING, 'Margin', MARGIN);
     
     hold on;
     VEL_TYPE = 'Lat';
@@ -469,9 +474,11 @@ for trial_idx = 1:size(trial_type_cnt,1)
     xlabel('Time (s)', 'FontSize', 14);
     ylabel('Velocity (au/s)', 'FontSize', 14);
     xlim([0 PRE_STIM+STIM+FLUSH]);
-    ylim([-2000 2000]);
+    ylim([-3000 3000]);
 
-    subplot(4,2,subplot_idx+2);
+    % subplot(4,2,subplot_idx+2);
+    subaxis(4,2,subplot_idx+2, 'Spacing', SPACING, 'Padding', PADDING, 'Margin', MARGIN);
+
     hold on;
     VEL_TYPE = 'Lat';
     %plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
@@ -488,12 +495,12 @@ for trial_idx = 1:size(trial_type_cnt,1)
     xlabel('Time (s)', 'FontSize', 14);
     ylabel('Velocity (au/s)', 'FontSize', 14);
     xlim([0 PRE_STIM+STIM+FLUSH]);
-    ylim([-2000 2000]);
-    
-    
+    ylim([-3000 3000]);    
     
     figure(f1);
-    subplot(4,2,subplot_idx);
+    %subplot(4,2,subplot_idx);
+    subaxis(4,2,subplot_idx, 'Spacing', SPACING, 'Padding', PADDING, 'Margin', MARGIN);
+
     hold on;
     VEL_TYPE = 'Fwd';
     %plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
@@ -510,9 +517,11 @@ for trial_idx = 1:size(trial_type_cnt,1)
     xlabel('Time (s)', 'FontSize', 14);
     ylabel('Velocity (au/s)', 'FontSize', 14);
     xlim([0 PRE_STIM+STIM+FLUSH]);
-    ylim([-2000 5000]);
+    ylim([-3000 6000]);
 
-    subplot(4,2,subplot_idx+2);
+    %subplot(4,2,subplot_idx+2);
+    subaxis(4,2,subplot_idx+2, 'Spacing', SPACING, 'Padding', PADDING, 'Margin', MARGIN);
+
     hold on;
     VEL_TYPE = 'Fwd';
     %plot(time_grid, avg_tc_lat, 'color', rgb('Brown'));
@@ -529,7 +538,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     xlabel('Time (s)', 'FontSize', 14);
     ylabel('Velocity (au/s)', 'FontSize', 14);
     xlim([0 PRE_STIM+STIM+FLUSH]);
-    ylim([-2000 5000]);
+    ylim([-3000 6000]);
     
     figure(f2);
     subplot(2,2,trial_idx);
@@ -541,8 +550,8 @@ for trial_idx = 1:size(trial_type_cnt,1)
     
     xlim(ax1(1), [0 PRE_STIM+STIM+FLUSH]);
     xlim(ax1(2), [0 PRE_STIM+STIM+FLUSH]);
-    ylim(ax1(1), [-2000 5000]);
-    ylim(ax1(2), [-2000 5000]);
+    ylim(ax1(1), [-3000 6000]);
+    ylim(ax1(2), [-3000 6000]);
     legend([h1,h2], {'Lat', 'Fwd'});    
 
 end

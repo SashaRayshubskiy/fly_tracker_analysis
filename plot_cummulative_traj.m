@@ -43,6 +43,7 @@ xlabel('Distance (au)', 'FontSize', 14);
 ylabel('Distance (au)', 'FontSize', 14);
 tt = title(['Cumulative run ( ' first_time ' to ' last_time ' )'], 'FontSize', 16);
 set(tt,'interpreter','none')
+axis image;
 
 figname = 'cumulative_run';
 saveas(f, [basepath figname '.png']);
