@@ -4,9 +4,15 @@
 clear all;
 close all;
 % basepath = '/home/sasha/fly_trackball_data/fly16/';
+<<<<<<< Updated upstream
 basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly35/';
 %basepath = '/home/sasha/data/fly41/';
+=======
+basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly32/';
+%basepath = '/data_drive/sasha/trackball/fly34/';
+>>>>>>> Stashed changes
 cd(basepath);
+
 
 PRE_STIM = 5;
 STIM = 5;
@@ -15,6 +21,11 @@ FLUSH = 5;
 search_dirs = '*raw_trial_*';
 %search_dirs = '2014_1009_121807*raw_trial_*'; % fly 34
 files = dir([search_dirs '.mat']);
+
+%search_dirs = '2014_1009_111949*raw_trial_*';
+%files2 = dir([search_dirs '.mat']);
+
+%files = [files1; files2];
 
 clear trial_data;
 %trial_data = cell(1,1);

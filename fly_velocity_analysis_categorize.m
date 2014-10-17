@@ -2,9 +2,6 @@
 
 trial_type_labels = { 'Both Air', 'Both Odor', 'Left Odor', 'Right Odor' };
 
-STIM = 15.0;
-PRE_STIM = 5.0;
-
 f = figure;
 colormap jet;
 cmap = colormap;
@@ -19,7 +16,7 @@ pre_stim_sizes = [];
 stim_sizes = [];
 
 TIME_BEFORE_STIM_TO_EVALUATE_FOR_TURNING = 5.0; % seconds
-TIME_AFTER_STIM_TO_EVALUATE_FOR_TURNING = 15.0; % seconds
+TIME_AFTER_STIM_TO_EVALUATE_FOR_TURNING = 8.0; % seconds
 
 PLOT_X_OFFSET_DELTA = 2000;
 

@@ -123,7 +123,7 @@ stim_sizes = [];
 
 PLOT_X_OFFSET_DELTA = 5000;
 
-CHOOSE_PERCENT_CUTOFF = 1.0;
+CHOOSE_PERCENT_CUTOFF = 0.0;
 first_time = 1;
 
 for trial_idx = 1:size(trial_type_cnt,1)
@@ -338,11 +338,10 @@ for trial_idx = 1:size(trial_type_cnt,1)
         end
     end
 end
- 
+
 % Process the incorrect trials
 incorrect_time_grid_data = cell(4,size(time_grid,1));
 for trial_idx = 1:size(trial_type_cnt,1)
-       
     for i = 1:size(time_grid,2)
         incorrect_time_grid_data{trial_idx,i} = [];
     end
@@ -398,6 +397,8 @@ incorrect_sem_tc_fwd = zeros(size(time_grid,2),1);
 
 f = figure;
 f1 = figure;
+f2 = figure;
+
 for trial_idx = 1:size(trial_type_cnt,1)       
     
     for i = 1:size(time_grid,2)        
@@ -530,6 +531,20 @@ for trial_idx = 1:size(trial_type_cnt,1)
     xlim([0 PRE_STIM+STIM+FLUSH]);
     ylim([-2000 5000]);
     
+    figure(f2);
+    subplot(2,2,trial_idx);
+    
+    [ax1, h1, h2] = plotyy(time_grid, avg_tc_lat, time_grid, avg_tc_fwd);
+    title([trial_type_labels{trial_idx} ': ' VEL_TYPE ' vel stim error: std'], 'FontSize', 14);
+    xlabel('Time (s)', 'FontSize', 14);
+    ylabel('Velocity (au/s)', 'FontSize', 14);
+    
+    xlim(ax1(1), [0 PRE_STIM+STIM+FLUSH]);
+    xlim(ax1(2), [0 PRE_STIM+STIM+FLUSH]);
+    ylim(ax1(1), [-2000 5000]);
+    ylim(ax1(2), [-2000 5000]);
+    legend([h1,h2], {'Lat', 'Fwd'});    
+
 end
 
 figname = ['lat_vel_ts_per_type'];
@@ -541,3 +556,8 @@ figname = ['fwd_vel_ts_per_type'];
 saveas(f1, [basepath figname '.png']);
 saveas(f1, [basepath figname '.fig']);
 saveas(f1, [basepath figname '.eps']);
+
+figname = ['fwd_lat_vel_ts_per_type'];
+saveas(f2, [basepath figname '.png']);
+saveas(f2, [basepath figname '.fig']);
+saveas(f2, [basepath figname '.eps']);

@@ -293,7 +293,7 @@ ylabel('Velocity (au/s)');
 title(['Avg forward velocity']);
 lh = legend('Pre-stim', 'Stim');
 set(lh,'location','northeastoutside');
-ylim([0 2500]);
+ylim([0 4500]);
 
 subplot(3,1,2);
 mean_vl_bars(1,:) = mean_vl_pre;
@@ -308,7 +308,7 @@ title(['Avg lateral velocity']);
 lh = legend('Pre-stim', 'Stim');
 set(lh,'location','northeastoutside');
 yl = ylim;
-%ylim([yl(1) 250]);
+ylim([yl(1) 350]);
 
 subplot(3,1,3);
 mean_v_bars(1,:) = mean_v_pre;
@@ -322,7 +322,7 @@ ylabel('Velocity (au/s)');
 title(['Avg velocity']);
 lh = legend('Pre-stim', 'Stim');
 set(lh,'location','northeastoutside');
-ylim([0 3000]);
+ylim([0 5000]);
 
 % subplot(1,1,1);
 % vf_bars(1,:) = mean_vf_pre;
