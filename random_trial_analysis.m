@@ -4,7 +4,7 @@
 clear all;
 close all;
 % basepath = '/home/sasha/fly_trackball_data/fly16/';
-basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly41/';
+basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly48/';
 %basepath = '/home/sasha/data/fly41/';
 %basepath = '/data_drive/sasha/trackball/fly34/';
 cd(basepath);
@@ -13,20 +13,21 @@ cd(basepath);
 PRE_STIM = 5;
 STIM = 5;
 FLUSH = 5;
-
+TRIAL_TYPE_CNT = 6;
+trial_type_labels = { 'BA', 'BO', 'LO', 'RO', 'LA', 'RA' };
 search_dirs = '*raw_trial_*';
-%search_dirs = '2014_1009_121807*raw_trial_*'; % fly 34
+%search_dirs = '2014_1020_135514*raw_trial_*';
+%search_dirs = '2014_1020_115155*raw_trial_*'; % fly 34
 files = dir([search_dirs '.mat']);
 
-%search_dirs = '2014_1009_111949*raw_trial_*';
+%search_dirs = '2014_1020_135514*raw_trial_*';
 %files2 = dir([search_dirs '.mat']);
-
 %files = [files1; files2];
 
 clear trial_data;
 %trial_data = cell(1,1);
 
-trial_type_cnt = ones(4,1);
+trial_type_cnt = ones(TRIAL_TYPE_CNT,1);
 
 for i=1:size(files,1)
     filename = files(i).name;
@@ -49,6 +50,10 @@ for i=1:size(files,1)
         trial_type_idx = 3;        
     elseif ( strcmp(trial_type, 'Right_Odor') )
         trial_type_idx = 4;        
+    elseif ( strcmp(trial_type, 'Left_Air') )
+        trial_type_idx = 5;        
+    elseif ( strcmp(trial_type, 'Right_Air') )
+        trial_type_idx = 6;        
     end
     
    disp(['Trial filename: ' filename]); 
