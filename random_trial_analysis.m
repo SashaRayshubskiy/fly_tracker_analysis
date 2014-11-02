@@ -4,7 +4,7 @@
 clear all;
 close all;
 % basepath = '/home/sasha/fly_trackball_data/fly16/';
-basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly48/';
+basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly53/';
 %basepath = '/home/sasha/data/fly41/';
 %basepath = '/data_drive/sasha/trackball/fly34/';
 cd(basepath);

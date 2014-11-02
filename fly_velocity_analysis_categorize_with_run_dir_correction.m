@@ -186,7 +186,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
         stim_vel_y = dy(stim_t(2:end)) ./ diff(t_z(stim_t));
         % stim_vel = sqrt(stim_vel_x.^2 + stim_vel_y.^2);      
         
-        QUALIFICATION_SPEED_LIMIT = 1800;
+        QUALIFICATION_SPEED_LIMIT = 1000;
         if( (mean(pre_vel_y) < QUALIFICATION_SPEED_LIMIT) | (mean(stim_vel_y) < QUALIFICATION_SPEED_LIMIT ))
             continue;
         end
@@ -258,6 +258,8 @@ for trial_idx = 1:size(trial_type_cnt,1)
     xlim([ -10000 10000 ]);
     ylim([ 0 40000 ]);
     lh = legend([go_ph; no_go_ph],{'Correct', 'Incorrect'});
+    yt = get(gca,'YTick');
+    set(gca,'YTickLabel', sprintf('%.0f|',yt))
 
     xlabel('X distance (au)', 'FontSize', 14);
     ylabel('Y distance (au)', 'FontSize', 14);    
