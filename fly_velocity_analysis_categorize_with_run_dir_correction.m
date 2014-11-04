@@ -121,6 +121,10 @@ f = figure;
 pre_stim_sizes = [];
 stim_sizes = [];
 
+SPACING = 0.1;
+PADDING = 0;
+MARGIN = 0.05;
+    
 PLOT_X_OFFSET_DELTA = 5000;
 
 CHOOSE_PERCENT_CUTOFF = 0.0;
@@ -137,7 +141,8 @@ for trial_idx = 1:size(trial_type_cnt,1)
         
     trial_cnt = trial_type_cnt(trial_idx);
     
-    subplot(2,3,trial_idx);
+    subaxis(2,3,trial_idx, 'Spacing', SPACING, 'Padding', PADDING, 'Margin', MARGIN);
+    % subplot(2,3,trial_idx);
     
     cur_x_plot_offset = 0;
     
@@ -156,13 +161,17 @@ for trial_idx = 1:size(trial_type_cnt,1)
         t_z = t-t(1);        
                 
         % pre_stim_t = find(t_z < PRE_STIM);
-        LOOKBACK = PRE_STIM;
-        % LOOKBACK = 5;
-        pre_stim_t = find((t_z>(PRE_STIM-LOOKBACK)) & (t_z < PRE_STIM));
-        stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+STIM)));        
+        % LOOKBACK = PRE_STIM;
+        LOOKBACK = 4;
+        pre_stim_t = find(t_z < PRE_STIM);
+        qual_pre_stim_t = find((t_z>(PRE_STIM-LOOKBACK)) & (t_z < PRE_STIM));
+        %stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+STIM)));                
         
-        dir_pre_x = sum(dx(pre_stim_t));
-        dir_pre_y = sum(dy(pre_stim_t));
+        stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+STIM)));
+        qual_stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+LOOKBACK)));
+                
+        dir_pre_x = sum(dx(qual_pre_stim_t));
+        dir_pre_y = sum(dy(qual_pre_stim_t));
         pre_angle_rad = atan2( dir_pre_y, dir_pre_x );
         
         rot_rad = pre_angle_rad - pi/2.0;
@@ -174,26 +183,26 @@ for trial_idx = 1:size(trial_type_cnt,1)
         dy = vR(:,2)';
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
         
-        if( size(pre_stim_t,2) <= 1 || (size(stim_t,2) <= 1 ))
+        if( size(qual_pre_stim_t,2) <= 1 || (size(qual_stim_t,2) <= 1 ))
             continue;
         end
         
-        pre_vel_x = dx(pre_stim_t(2:end)) ./ diff(t_z(pre_stim_t));
-        pre_vel_y = dy(pre_stim_t(2:end)) ./ diff(t_z(pre_stim_t));
+        qual_pre_vel_x = dx(qual_pre_stim_t(2:end)) ./ diff(t_z(qual_pre_stim_t));
+        qual_pre_vel_y = dy(qual_pre_stim_t(2:end)) ./ diff(t_z(qual_pre_stim_t));
         % pre_vel = sqrt(pre_vel_x.^2 + pre_vel_y.^2);        
                 
-        stim_vel_x = dx(stim_t(2:end)) ./ diff(t_z(stim_t));
-        stim_vel_y = dy(stim_t(2:end)) ./ diff(t_z(stim_t));
+        qual_stim_vel_x = dx(qual_stim_t(2:end)) ./ diff(t_z(qual_stim_t));
+        qual_stim_vel_y = dy(qual_stim_t(2:end)) ./ diff(t_z(qual_stim_t));
         % stim_vel = sqrt(stim_vel_x.^2 + stim_vel_y.^2);      
         
-        QUALIFICATION_SPEED_LIMIT = 1000;
-        if( (mean(pre_vel_y) < QUALIFICATION_SPEED_LIMIT) | (mean(stim_vel_y) < QUALIFICATION_SPEED_LIMIT ))
+        QUALIFICATION_SPEED_LIMIT = 1500;
+        if( (mean(qual_pre_vel_y) < QUALIFICATION_SPEED_LIMIT) | (mean(qual_stim_vel_y) < QUALIFICATION_SPEED_LIMIT ))
             continue;
         end
 
-        mean_turning_idx(cnt) = (mean(stim_vel_x) - mean(pre_vel_x)) / abs(mean(pre_vel_x));
+        mean_turning_idx(cnt) = (mean(qual_stim_vel_x) - mean(qual_pre_vel_x)) / abs(mean(qual_pre_vel_x));
         
-        mean_speedup_idx(cnt) = mean(stim_vel_y) - mean(pre_vel_y);
+        mean_speedup_idx(cnt) = mean(qual_stim_vel_y) - mean(qual_pre_vel_y);
 
         choosen = 0;
         if( ((trial_idx == 3) | (trial_idx == 5)) & (mean_turning_idx(cnt) < -1.0*CHOOSE_PERCENT_CUTOFF) )
@@ -204,40 +213,24 @@ for trial_idx = 1:size(trial_type_cnt,1)
         
         if(choosen == 1)
             clr = rgb('Brown');
-            correct_trials{trial_idx} = [ correct_trials{trial_idx} j];
-            
-            if(trial_idx == 3)
-                cur_x_plot_offset = 0;
-            else
-                cur_x_plot_offset = 0;
-            end
+            correct_trials{trial_idx} = [ correct_trials{trial_idx} j];            
         else
             incorrect_trials{trial_idx} = [ incorrect_trials{trial_idx} j];
-            clr = rgb('SandyBrown');
-            
-            if(trial_idx == 3)
-                cur_x_plot_offset = 0;
-            else
-                cur_x_plot_offset = 0;
-            end
+            clr = rgb('SandyBrown');            
         end
         
         pre_and_stim_t = horzcat( pre_stim_t, stim_t );
         [traj_x, traj_y] = calc_trial_trajectory( dx(pre_and_stim_t), dy(pre_and_stim_t) );
         hold on;
-        ph = plot(traj_x  + cur_x_plot_offset, traj_y, 'color', clr);
-        plot( traj_x(size(pre_stim_t,2):end) + cur_x_plot_offset, traj_y(size(pre_stim_t,2):end), 'x', 'color', clr );
+        ph = plot(traj_x, traj_y, 'color', clr);
+        plot( traj_x(size(pre_stim_t,2):end), traj_y(size(pre_stim_t,2):end), 'x', 'color', clr );
         
         if(choosen)
             go_ph = ph;
         else
             no_go_ph = ph;
         end
-        
-        %text(cur_x_plot_offset, mean(traj_y(size(pre_stim_t,2):end)), ['TurnIdx: ' num2str(mean_turning_idx(cnt))]);
-        %text(cur_x_plot_offset, mean(traj_y(size(pre_stim_t,2):end))+2000, ['PreVelX: ' num2str(mean(pre_vel_x))]);
-        %text(cur_x_plot_offset, mean(traj_y(size(pre_stim_t,2):end))+4000, ['StimVelX: ' num2str(mean(stim_vel_x))]);
-                
+                        
         cnt = cnt + 1;
         qualified_trials_cnt = qualified_trials_cnt + 1;
     end
@@ -258,8 +251,8 @@ for trial_idx = 1:size(trial_type_cnt,1)
     xlim([ -10000 10000 ]);
     ylim([ 0 40000 ]);
     lh = legend([go_ph; no_go_ph],{'Correct', 'Incorrect'});
-    yt = get(gca,'YTick');
-    set(gca,'YTickLabel', sprintf('%.0f|',yt))
+    %yt = get(gca,'YTick');
+    %set(gca,'YTickLabel', sprintf('%.0f |',yt))
 
     xlabel('X distance (au)', 'FontSize', 14);
     ylabel('Y distance (au)', 'FontSize', 14);    
@@ -279,7 +272,7 @@ colormap jet;
 cmap = colormap;
 temp = linspace(1,size(cmap,1),max(trial_type_cnt));
 cs = cmap(floor(temp),:);
-close(gcf());
+
 
 %f = figure;
 
@@ -311,19 +304,9 @@ for trial_idx = 1:size(trial_type_cnt,1)
                 
         t_z = t-t(1);
         
-        pre_stim_t = find(t_z < PRE_STIM);
-        stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+STIM)));
-        
-        % disp(['size(pre_stim_t): ' num2str(size(pre_stim_t))]);
-        % disp(['size(stim_t): ' num2str(size(stim_t))]);
-        
-        if( size(pre_stim_t,2) <= 1 || (size(stim_t,2) <= 1 ))
-            continue;
-        end        
-                 
         t_diff = diff(t_z);
-        stim_vel_x = dx(2:end) ./ t_diff;
-        stim_vel_y = dy(2:end) ./ t_diff;
+        vel_x = dx(2:end) ./ t_diff;
+        vel_y = dy(2:end) ./ t_diff;
         
         time_grid_idx = 1;
         for t_i = 2:size(t,2)  
@@ -333,7 +316,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
             
             % t(t_i) is => time_grid(time_grid_idx) here.
             %t_i
-            correct_time_grid_data{trial_idx,time_grid_idx} = cat(1, correct_time_grid_data{trial_idx,time_grid_idx}, [jj stim_vel_x(t_i-1) stim_vel_y(t_i-1)]);            
+            correct_time_grid_data{trial_idx,time_grid_idx} = cat(1, correct_time_grid_data{trial_idx,time_grid_idx}, [jj vel_x(t_i-1) vel_y(t_i-1)]);            
         end
     end
 end
@@ -359,17 +342,10 @@ for trial_idx = 1:size(trial_type_cnt,1)
         dy = double(d.dy);
                 
         t_z = t-t(1);
-        
-        pre_stim_t = find(t_z < PRE_STIM);
-        stim_t = find((t_z >= PRE_STIM) & (t_z<(PRE_STIM+STIM)));
-        
-        if( size(pre_stim_t,2) <= 1 || (size(stim_t,2) <= 1 ))
-            continue;
-        end        
-                 
+                         
         t_diff = diff(t_z);
-        stim_vel_x = dx(2:end) ./ t_diff;
-        stim_vel_y = dy(2:end) ./ t_diff;
+        vel_x = dx(2:end) ./ t_diff;
+        vel_y = dy(2:end) ./ t_diff;
         
         time_grid_idx = 1;
         for t_i = 2:size(t,2)  
@@ -377,22 +353,12 @@ for trial_idx = 1:size(trial_type_cnt,1)
                 time_grid_idx = time_grid_idx  + 1;
             end
             
-            incorrect_time_grid_data{trial_idx,time_grid_idx} = cat(1, incorrect_time_grid_data{trial_idx,time_grid_idx}, [jj stim_vel_x(t_i-1) stim_vel_y(t_i-1)]);
+            incorrect_time_grid_data{trial_idx,time_grid_idx} = cat(1, incorrect_time_grid_data{trial_idx,time_grid_idx}, [jj vel_x(t_i-1) vel_y(t_i-1)]);
        end
    end
 end
 
 %% Plot average velocity time course with error bars for lateral and forward 
-
-correct_avg_tc_lat = zeros(size(time_grid,2),1);
-correct_sem_tc_lat = zeros(size(time_grid,2),1);
-correct_avg_tc_fwd = zeros(size(time_grid,2),1);
-correct_sem_tc_fwd = zeros(size(time_grid,2),1);
-
-incorrect_avg_tc_lat = zeros(size(time_grid,2),1);
-incorrect_sem_tc_lat = zeros(size(time_grid,2),1);
-incorrect_avg_tc_fwd = zeros(size(time_grid,2),1);
-incorrect_sem_tc_fwd = zeros(size(time_grid,2),1);
 
 f = figure('units','normalized','outerposition',[0 0 1 1]);
 f1 = figure('units','normalized','outerposition',[0 0 1 1]);
@@ -400,11 +366,21 @@ f2 = figure('units','normalized','outerposition',[0 0 1 1]);
 
 for trial_idx = 1:size(trial_type_cnt,1)       
     
+    correct_avg_tc_lat = zeros(size(time_grid,2),1);
+    correct_sem_tc_lat = zeros(size(time_grid,2),1);
+    correct_avg_tc_fwd = zeros(size(time_grid,2),1);
+    correct_sem_tc_fwd = zeros(size(time_grid,2),1);
+    
+    incorrect_avg_tc_lat = zeros(size(time_grid,2),1);
+    incorrect_sem_tc_lat = zeros(size(time_grid,2),1);
+    incorrect_avg_tc_fwd = zeros(size(time_grid,2),1);
+    incorrect_sem_tc_fwd = zeros(size(time_grid,2),1);
+    
     for i = 1:size(time_grid,2)      
 
         disp(['size(stim_t): ' num2str(size(correct_time_grid_data{trial_idx,i}))]);
 
-        if(size(correct_time_grid_data{trial_idx,i}) ~= 0 )
+        if(length(correct_time_grid_data{trial_idx,i}) ~= 0 )
             mmm = mean(correct_time_grid_data{trial_idx,i},1);
             correct_avg_tc_lat( i ) = mmm( 2 );
             correct_avg_tc_fwd( i ) = mmm( 3 );
@@ -423,7 +399,7 @@ for trial_idx = 1:size(trial_type_cnt,1)
     end
     
     for i = 1:size(time_grid,2)
-        if(size(incorrect_time_grid_data{trial_idx,i}) ~= 0 )
+        if(length(incorrect_time_grid_data{trial_idx,i}) ~= 0 )
             mmm = mean(incorrect_time_grid_data{trial_idx,i},1);
             incorrect_avg_tc_lat( i ) = mmm( 2 );
             incorrect_avg_tc_fwd( i ) = mmm( 3 );

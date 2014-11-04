@@ -75,10 +75,14 @@ all_data_vf_trim = all_data_vf(1:cur_idx);
 all_data_vl_trim = all_data_vl(1:cur_idx);
 all_data_v_trim  = all_data_v(1:cur_idx);
 
+%LOW_PASS_CUTOFF = 10000;
+%all_data_vf_trim(find( (all_data_vf_trim > LOW_PASS_CUTOFF) & (all_data_vf_trim < 0))) = 0;
+
 NUMBINS = 50;
 f = figure;
 subplot(3,1,1);
 hist(all_data_vf_trim,NUMBINS);
+xlim([0 10000]);
 xlabel('Velocity (au/s)','FontSize', 14);
 ylabel('Count','FontSize', 14);
 title('Forward velocity','FontSize', 16);

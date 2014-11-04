@@ -3,19 +3,19 @@
 % Load trial data
 clear all;
 close all;
-% basepath = '/home/sasha/fly_trackball_data/fly16/';
-basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly53/';
+basepath = '/home/sasha/fly_trackball_data/fly56/';
+%basepath = '/Users/sasha/Documents/Wilson lab/Data/trackball/fly53/';
 %basepath = '/home/sasha/data/fly41/';
 %basepath = '/data_drive/sasha/trackball/fly34/';
 cd(basepath);
 
 
 PRE_STIM = 5;
-STIM = 5;
+STIM = 10;
 FLUSH = 5;
 TRIAL_TYPE_CNT = 6;
 trial_type_labels = { 'BA', 'BO', 'LO', 'RO', 'LA', 'RA' };
-search_dirs = '*raw_trial_*';
+search_dirs = '2014_1103_184842*raw_trial_*';
 %search_dirs = '2014_1020_135514*raw_trial_*';
 %search_dirs = '2014_1020_115155*raw_trial_*'; % fly 34
 files = dir([search_dirs '.mat']);
